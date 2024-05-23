@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Motion Recorder</title>
+</head>
+<body>
+    <canvas id="gameCanvas" width="1920" height="1080"></canvas>
+    <script>
+        var canvas = document.getElementById('gameCanvas');
+        var ctx = canvas.getContext('2d');
+        var data = new Array(65535);
+        var sp = 32768;
+        var recording = false;
+        var length = 0;
+        var current = 0;
+        var mouseX = 0;
+        var mouseY = 0;
+        
+        canvas.addEventListener('mousedown', function(event) {
+            if (event.button === 0) {
+                recording = true;
+                sp = 32768;
+            }
+        });
+
+        canvas.addEventListener('mouseup', function(event) {
+            if (event.button === 0) {
+                recording = false;
+                length = sp;
+                current = 0;
+            }
+        });
+
+        canvas.addEventListener('mousemove', function(event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        });
+
+        function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!recording) {
+        // Playback
+        if (current < length) {
+            // Restore position
+            if (sp === length) {
+                sp = 32768;
+            }
+            sp = (sp - 1) % 65535;
+            var xxx = (data[sp] >> 14) & 16383;
+            var yyy = data[sp] & 16383;
+            ctx.fillStyle = 'green';
+            ctx.fillRect(xxx - 16, yyy - 16, 32, 32);
+            current++;
+        } else {
+            ctx.fillStyle = 'green';
+            ctx.fillText("Press to record, release for playback", 20, 20);
+        }
+    } else {
+        // Record
+        // Save position
+        var xxx = mouseX;
+        var yyy = mouseY;
+        sp--;
+        data[sp] = (xxx << 14) + yyy;
+        if (sp === 0) {
+            sp = 65535;
+        }
+        // Draw box while recording
+        ctx.fillStyle = 'red';
+        ctx.fillRect(xxx - 16, yyy - 16, 32, 32);
+    }
+}
+        function mainLoop() {
+            draw();
+            requestAnimationFrame(mainLoop);
+        }
+        mainLoop();
+    </script>
+</body>
+</html>

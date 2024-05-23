@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Balloon Sprite Demo</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block; /* Remove any space reserved for descenders */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const image = new Image();
+        image.src = 'sprite.png'; // Replace 'balloon.png' with your balloon image source
+
+        const spriteWidth = 256;
+        const spriteHeight = 256;
+        const speed = 4; // Adjust the speed as needed
+        let x = 0;
+        let y = 0;
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Move the sprite
+            if (keys[37]) x -= speed; // Left
+            if (keys[38]) y -= speed; // Up
+            if (keys[39]) x += speed; // Right
+            if (keys[40]) y += speed; // Down
+            
+            // Main sprite
+            drawBalloon(x, y);
+        
+            // Corners (if one of these are handled then you can ignore edges and save overdraws)
+            if ( (y > canvas.height-spriteHeight) && (x > canvas.width-spriteWidth)) drawBalloon(x-canvas.width, y-canvas.height);
+            if ( (y > canvas.height-spriteHeight) && (x < 0)) drawBalloon(x+canvas.width, y-canvas.height);
+            if ( (y < 0) && (x > canvas.width-spriteWidth)) drawBalloon(x-canvas.width, y+canvas.height);
+            if ( (y < 0) && (x < 0)) drawBalloon(x+canvas.width, y+canvas.height);
+
+            // Edges
+            if (y > canvas.height-spriteHeight) drawBalloon(x, y-canvas.height);
+            if (y < 0 ) drawBalloon(x, y+canvas.height);
+            if (x > canvas.width-spriteWidth) drawBalloon(x-canvas.width, y);
+            if (x < 0 ) drawBalloon(x+canvas.width, y);
+
+            // Wrap actual main sprite coordinates
+            if (y <= 0-spriteHeight)   y = y + canvas.height;
+            if (y >= canvas.height)  y = y - canvas.height;
+            if (x <= 0-spriteWidth)   x = x + canvas.width;
+            if (x >= canvas.width)  x = x - canvas.width;
+ 
+            requestAnimationFrame(draw);
+        }
+
+        // Function to draw the balloon sprite
+        function drawBalloon(x, y) {
+            ctx.drawImage(image, x, y);
+        }
+
+        // Handle Input
+        const keys = [];
+        window.addEventListener('keydown', (e) => {
+            keys[e.keyCode] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.keyCode] = false;
+        });
+
+        // Load the image and start the animation loop
+        image.onload = () => {
+            draw();
+        };
+
+        function wrapAround(value, min, max) {
+            if (value < min) {
+                return value + max - min;
+            } else if (value >= max) {
+                return value - (max - min);
+            }
+            return value;
+        }
+        // x = wrapAround(x, 0, canvas.width);
+        // y = wrapAround(y, 0, canvas.height);
+
+    </script>
+</body>
+</html>
